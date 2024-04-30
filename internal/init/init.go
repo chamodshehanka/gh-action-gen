@@ -38,7 +38,8 @@ func LoadInitForm() {
 
 	actionTypeOptions := constants.GetActionTypeOptions(actionType)
 	if actionTypeOptions == nil {
-		log.Fatal("Invalid action type")
+		log.Fatal("Not implemented yet!")
+		return
 	}
 
 	form = huh.NewForm(
@@ -63,19 +64,21 @@ func LoadInitForm() {
 		return
 	}
 
-	err = workflow.CreateWorkflowFile(applicationType, actionType)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
 }
 
 func createWorkflowFile() error {
 	if directory.IsWorkflowDirExists() {
-
+		err := workflow.CreateWorkflowFile(applicationType, actionType)
+		if err != nil {
+			return err
+		}
 	} else {
 		err := directory.CreateWorkflowDir()
+		if err != nil {
+			return err
+		}
+
+		err = createWorkflowFile()
 		if err != nil {
 			return err
 		}
