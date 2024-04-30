@@ -1,12 +1,6 @@
-package constants
+package options
 
 import "github.com/charmbracelet/huh"
-
-type Option[T comparable] struct {
-	Key      string
-	Value    T
-	selected bool
-}
 
 func GetAppCIOptions() []huh.Option[string] {
 	return []huh.Option[string]{

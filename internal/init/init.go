@@ -4,30 +4,33 @@ import (
 	"fmt"
 	"github.com/chamodshehanka/gh-action-gen/internal/constants"
 	"github.com/chamodshehanka/gh-action-gen/internal/directory"
+	"github.com/chamodshehanka/gh-action-gen/internal/options"
+	"github.com/chamodshehanka/gh-action-gen/internal/utils"
 	"github.com/chamodshehanka/gh-action-gen/internal/workflow"
 	"github.com/charmbracelet/huh"
-	"log"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/log"
 )
 
 var (
 	actionType      string
 	applicationType string
-	extensions      []string
+	actionTriggers  []string
 	name            string
+	branch          string
 )
 
 func LoadInitForm() {
 	form := huh.NewForm(
 		huh.NewGroup(
-			// Ask the user for the type of GitHub Action they want to create.
 			huh.NewSelect[string]().
-				Title("Choose your GitHub Action Type").
+				Title("Choose the GitHub Action type you want to create:").
 				Options(
-					huh.NewOption("App CI", "ci"),
-					huh.NewOption("Deployment", "deployment"),
-					huh.NewOption("Publish", "publish"),
+					huh.NewOption(constants.ActionTypeAppCI, constants.ActionTypeAppCI),
+					huh.NewOption(constants.ActionTypeDeployment, constants.ActionTypeDeployment),
+					huh.NewOption(constants.ActionTypePublish, constants.ActionTypePublish),
 				).
-				Value(&actionType), // store the chosen option in the "actionType" variable
+				Value(&actionType),
 		),
 	)
 
@@ -36,7 +39,14 @@ func LoadInitForm() {
 		log.Fatal(err)
 	}
 
-	actionTypeOptions := constants.GetActionTypeOptions(actionType)
+	style := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("205")).
+		Bold(true).PaddingLeft(2)
+
+	// Use the style
+	fmt.Println(style.Render("GitHub Action type: "), actionType)
+
+	actionTypeOptions := options.GetActionTypeOptions(actionType)
 	if actionTypeOptions == nil {
 		log.Fatal("Not implemented yet!")
 		return
@@ -55,9 +65,25 @@ func LoadInitForm() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Application Type: ", applicationType)
-	fmt.Println("Action Type: ", actionType)
+	fmt.Println(style.Render("Application technology: "), applicationType)
 
+	form = huh.NewForm(
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().Title("When should this action be triggered?").Options(
+				huh.NewOption("On a new commit", constants.TriggerOnCommit),
+				huh.NewOption("On a Pull Request", constants.TriggerOnPullRequest),
+				huh.NewOption("On Workflow Dispatch", constants.TriggerOnWorkflowDispatch),
+			).Value(&actionTriggers),
+
+			huh.NewInput().Title("What's the branch name? (default 'main' will be used)").Value(&branch),
+		),
+	)
+	err = form.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(style.Render("GitHub Action will be triggered on: "), utils.StringArrayToString(actionTriggers))
 	err = createWorkflowFile()
 	if err != nil {
 		log.Fatal(err)
