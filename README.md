@@ -8,7 +8,7 @@ You can install the tool using go get:
 
 ```bash
 
-go get -u github.com/chamodshehanka/gh-action-gen
+go install github.com/chamodshehanka/gh-action-gen
 ```
 
 ## Usage
